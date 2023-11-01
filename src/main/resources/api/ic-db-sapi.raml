@@ -1,0 +1,79 @@
+#%RAML 1.0
+title: ic-db-sapi
+description: An API that is used to integrate with salesforce case object
+version: v1
+protocols: [HTTP,HTTPS]
+mediaType: 
+  - application/json
+
+traits:
+  headers: !include /traits/Trait.raml
+  trackingParams:
+    headers:
+      X-Correlation-ID:
+        description: A unique identifier for this message, to enable tracking, reporting, and correlation.
+        type: string
+        required: true
+resourceTypes:
+  Collection: !include /resource types/CommonCollection.raml
+uses:
+  errorDataType:  /resources/libraries/errorDataType.raml
+  getAllCases: /resources/libraries/getAllCasesDataType.raml
+  getSingleCase: /resources/libraries/getSingleCaseDataType.raml
+  updateCase: /resources/libraries/updateCaseDataType.raml
+  newCase: /resources/libraries/createDataType.raml
+  deleteDataTypes: /resources/libraries/deleteDataType.raml
+/case:
+  is: [headers,trackingParams]  
+  description: used to add new case
+  type:
+    Collection:
+      post-request-schema:
+          newCase.add_new_case
+      post-request-example: 
+        !include /examples/requests/createCaseExample.json
+      post-response-schema: 
+        newCase.case_added_response
+      post-response-example: 
+        !include /examples/responses/caseCreationExample.json
+      get-response-schema: 
+        getAllCases.get_all_cases_response
+      get-response-example: 
+        !include /examples/responses/getAllCasesExample.json
+      
+
+      errors-schema: errorDataType.error
+  get:
+    description: used to fetch case object from db
+  post:
+    description: For creating a new case object in db
+  
+  /{id}:
+    is: [headers,trackingParams]
+    description: used to retrieve single case details
+   
+    type:
+      Collection:
+        get-response-schema:
+          getSingleCase.Single_case_details
+        get-response-example: 
+          !include /examples/responses/getSingleCaseExampple.json
+        delete-response-schema: 
+          deleteDataTypes.delete
+        delete-response-example: 
+          !include /examples/responses/caseDeletionExample.json
+        put-request-schema: 
+         updateCase.update_case
+        put-request-example: 
+         !include /examples/requests/updateCaseExample.json 
+        put-response-schema: 
+         updateCase.update_case_response
+        put-response-example:
+         !include /examples/responses/caseUpdationExample.json 
+        errors-schema: errorDataType.error
+    get:
+      description: fetching a single case object from db
+    delete:
+      description: deleting a case in db
+    put:
+      description: updating a case in db       

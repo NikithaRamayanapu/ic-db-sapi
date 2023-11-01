@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <apikit:config name="ic-db-sapi-config" api="ic-db-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="ic-db-sapi-main">
+        <http:listener config-ref="ic-db-sapi-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="ic-db-sapi-config" />
+        <error-handler ref="Error_Handler" />
+    </flow>
+    <flow name="ic-db-sapi-console">
+        <http:listener config-ref="ic-db-sapi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="ic-db-sapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\case\(id):application\json:ic-db-sapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="0a0d92cc-9f14-4ade-8997-e7af4130a40f" name="update-cases-implementation" />
+    </flow>
+    <flow name="delete:\case\(id):ic-db-sapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="1f2f8f4d-4bed-4104-8887-e73dd435e9b9" name="deleting-case-implementaion" />
+    </flow>
+    <flow name="get:\case:ic-db-sapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="2428b2aa-3f23-45b1-9498-3614470a71e6" name="get-all-cases-implementation" />
+    </flow>
+    <flow name="get:\case\(id):ic-db-sapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="4318ec28-0395-48a4-b0d1-edcaa60ba6fd" name="get-by-id-implementation" />
+    </flow>
+    <flow name="post:\case:application\json:ic-db-sapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="1e9092b7-e11d-4a31-a42e-f28802893c1b" name="creating-case-implementation" />
+    </flow>
+</mule>

@@ -1,0 +1,12 @@
+{
+
+
+  "Subject": "New Case",
+  "Description": "This is a new case.",
+  "Status": "New",
+  "Priority": "Low",
+  "Sync_new_record_to_sfdc": "true",
+  "Sync_update_record_to_sfdc": "true",
+  "External_Id": "12345",
+  "Owner_Id":"0055j0000080amaAAA"
+}
