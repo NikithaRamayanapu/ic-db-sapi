@@ -3,5 +3,6 @@ output application/json
 ---
 {
   is_success: true,
+  "id": vars.vGet.id,
   errors: []
 }

@@ -6,11 +6,11 @@
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="creating-case-implementation" doc:id="4c5414d9-7431-46e3-9bdb-243ac11b11dd" >
-		<logger level="INFO" doc:name="creating flow started" doc:id="0e0c0a10-52f0-4f5a-aac4-e544dbe3f77e" message="creating flow started"/>
+		<logger level="INFO" doc:name="Creating flow started" doc:id="0e0c0a10-52f0-4f5a-aac4-e544dbe3f77e" message="Creating flow started"/>
 		<db:insert doc:name="Creating New Case in DB" doc:id="6e7d19b0-e2fe-41d0-a19e-1f2c118f7a88" config-ref="Database_Config">
 			<db:sql ><![CDATA[INSERT INTO freedb_nikitha.DB1
-(Priority,Status,Description,Subject,Sync_new_record_to_sfdc,Sync_update_record_to_sfdc,External_Id,OwnerId)
-VALUES(:Priority,:Status,:Description,:Subject,:Sync_new_record_to_sfdc,:Sync_update_record_to_sfdc,:External_Id,:OwnerId);]]></db:sql>
+(Priority,Status,Description,Subject,Sync_new_record_to_sfdc,Sync_update_record_to_sfdc,External_Id,OwnerId,CreatedDate)
+VALUES(:Priority,:Status,:Description,:Subject,:Sync_new_record_to_sfdc,:Sync_update_record_to_sfdc,:External_Id,:OwnerId,:CreatedDate);]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{      
 	   "Priority": payload.priority,
 	   "Status": payload.status,
@@ -19,70 +19,91 @@ VALUES(:Priority,:Status,:Description,:Subject,:Sync_new_record_to_sfdc,:Sync_up
          "Sync_new_record_to_sfdc": payload.sync_new_record_to_sfdc,
          "Sync_update_record_to_sfdc": payload.sync_update_record_to_sfdc,
          "External_Id": payload.external_id,
-         "OwnerId": payload.owner_Id
+         "OwnerId": payload.owner_Id,
+         "CreatedDate": now()
       }]]]></db:input-parameters>
 		</db:insert>
-		<ee:transform doc:name="Response of Creating Case" doc:id="4a66d75f-c10d-49a1-9bd0-fb0727fd2f8a" >
+		<ee:transform doc:name="DW set for Response of Creating Case" doc:id="4a66d75f-c10d-49a1-9bd0-fb0727fd2f8a" >
 			<ee:message >
 				<ee:set-payload resource="dwlScripts/togetresponseofcreatecases.dwl" />
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="creating flow ended" doc:id="e560602c-177e-43fb-8aea-fca6b21856d4" message="creating flow ended" />
+		<logger level="INFO" doc:name="Creating flow ended" doc:id="e560602c-177e-43fb-8aea-fca6b21856d4" message="Creating flow ended" />
 	</flow>
 	<flow name="get-by-id-implementation" doc:id="ae845669-ed1a-4fc7-8ad9-4cae7b8cfe29" >
-		<logger level="INFO" doc:name="get-by-id-flow-started" doc:id="411fecdc-c6f4-43df-b1ff-ed06d5e65e96" message="get-by-id-flow-started"/>
-		<db:query-single doc:name="Retriving Single Case from DB" doc:id="23c0be92-777e-459b-97bf-2cb62e02fc82" config-ref="Database_Config">
+		<logger level="INFO" doc:name="Get-by-id-flow-started" doc:id="411fecdc-c6f4-43df-b1ff-ed06d5e65e96" message="Get-by-id-flow-started"/>
+		<set-variable value="#[attributes.uriParams.id]" doc:name="To store id" doc:id="8a0074eb-82be-46f6-91cb-f50deb786915" variableName="id"/>
+		<db:query-single doc:name="Retriving Single Case from DB" doc:id="23c0be92-777e-459b-97bf-2cb62e02fc82" config-ref="Database_Config" target="vGet">
 			<db:sql ><![CDATA[SELECT * FROM freedb_nikitha.DB1 WHERE Id= :id
 ]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{"id": attributes.uriParams.id}]]]></db:input-parameters>
+			<db:input-parameters ><![CDATA[#[{"id": vars.id}]]]></db:input-parameters>
 		</db:query-single>
-		<ee:transform doc:name="Response of get  by id" doc:id="33dcebaa-b690-4f26-8189-b2392b033a48" >
-			<ee:message >
+		<choice doc:name="Choice" doc:id="52e52240-1293-49ef-bb92-6bb382c80dc4" >
+			<when expression="#[isEmpty(vars.vGet)]">
+				<ee:transform doc:name="Get by id error response" doc:id="77cc4b1c-4462-46dc-a23c-0b072c6dd2d8">
+					<ee:message>
+						<ee:set-payload resource="dwlScripts/togeterrorresponseofcases.dwl" />
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="DW set to Response of get  by id" doc:id="33dcebaa-b690-4f26-8189-b2392b033a48">
+			<ee:message>
 				<ee:set-payload resource="dwlScripts/togetresponseofcasesbyid.dwl" />
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="get-by-id-flow-ended" doc:id="a096e363-da64-4d14-adcd-233e1c9f230d" message="get-by-id-flow-ended"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Get-by-id-flow-ended" doc:id="a096e363-da64-4d14-adcd-233e1c9f230d" message="Get-by-id-flow-ended"/>
 	</flow>
 	<flow name="deleting-case-implementaion" doc:id="4e064c19-3b1f-4941-9ecc-df1d88c4b801" >
-		<logger level="INFO" doc:name="delete-cases-flow -started" doc:id="ecf31261-ce98-4c09-a968-8d6dd2cb4c50" message="delete-cases-flow -started"/>
+		<logger level="INFO" doc:name="Delete-cases-flow -started" doc:id="ecf31261-ce98-4c09-a968-8d6dd2cb4c50" message="Delete-cases-flow -started"/>
 		<db:select doc:name="Fetching Id from DB" doc:id="1a61a0b7-c0ea-4a1f-ad73-1aa1fc4c6676" config-ref="Database_Config">
 			<db:sql ><![CDATA[SELECT * FROM freedb_nikitha.DB1 WHERE Id= :id]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{"id": attributes.uriParams.id}]]]></db:input-parameters>
 		</db:select>
-		<logger level="INFO" doc:name="Logger" doc:id="634bd406-d461-4957-9a80-23267ea85c56" message="#[payload[0]]"/>
 		<choice doc:name="Choice" doc:id="6eb992e3-e410-42eb-9e65-30c3c7c145f1" >
 			<when expression="#[sizeOf(payload) &gt; 0]">
-				<logger level="INFO" doc:name="Logger" doc:id="f62f48bf-cb1d-46d5-af41-288e7cb1ddee" message="#[sizeOf(payload[0])]"/>
 				<db:delete doc:name="Deleting a Case from DB" doc:id="6a47441f-c326-4e5c-9e5f-d7a2a924ea8c" config-ref="Database_Config">
 			<db:sql><![CDATA[DELETE FROM freedb_nikitha.DB1 WHERE Id= :id]]></db:sql>
 			<db:input-parameters><![CDATA[#[{"id": payload[0].Id}]]]></db:input-parameters>
 		</db:delete>
-				<ee:transform doc:name="Response of delete" doc:id="70bede02-c2e9-4ff6-b172-25c0f1fc9ce3">
+				<ee:transform doc:name="DW set to Response of delete" doc:id="70bede02-c2e9-4ff6-b172-25c0f1fc9ce3">
 			<ee:message>
 						<ee:set-payload resource="dwlScripts/togetresponseofdeletingcases.dwl" />
 			</ee:message>
 		</ee:transform>
 			</when>
 			<otherwise >
-				<ee:transform doc:name="Transform Message" doc:id="d47ddfca-191d-4640-86ef-ae483c2257cc" >
+				<ee:transform doc:name="Delete casse error response" doc:id="d47ddfca-191d-4640-86ef-ae483c2257cc" >
 					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-	"message": "Id is not found"
-}
-]]></ee:set-payload>
+						<ee:set-payload resource="dwlScripts/togeterrorresponseofdeletingcases.dwl" />
 					</ee:message>
 				</ee:transform>
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="delete-cases-flow -ended" doc:id="9e44fc5f-5cc5-4075-b55f-76f935e87bf9" message="delete-cases-flow -ended"/>
+		<logger level="INFO" doc:name="Delete-cases-flow -ended" doc:id="9e44fc5f-5cc5-4075-b55f-76f935e87bf9" message="Delete-cases-flow -ended"/>
 	</flow>
 	<flow name="update-cases-implementation" doc:id="19201daf-d497-494d-b83f-93d1de284227" >
-		<logger level="INFO" doc:name="update-cases-flow -started" doc:id="1c1fde1b-dcb3-4405-92a4-3c34a5cdf837" message="update-cases-flow -started"/>
-		<db:update doc:name="Updating a Case in DB" doc:id="77cb10db-381a-4875-a700-8a4713a7468a" config-ref="Database_Config">
-			<db:sql ><![CDATA[      UPDATE freedb_nikitha.DB1
+		<logger level="INFO" doc:name="Update-cases-flow -started" doc:id="1c1fde1b-dcb3-4405-92a4-3c34a5cdf837" message="Update-cases-flow -started"/>
+		<set-variable value="#[attributes.uriParams.id]" doc:name="To store id" doc:id="81b3ab43-bcf5-4b75-a355-678ca184f1c4" variableName="id"/>
+		<db:query-single doc:name="Fetching id from db" doc:id="ac612cd9-58ea-4a73-8ed7-356c4a8cea5e" config-ref="Database_Config" target="vGet">
+			<db:sql ><![CDATA[SELECT * FROM freedb_nikitha.DB1 WHERE Id= :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"id": vars.id
+}]]]></db:input-parameters>
+		</db:query-single>
+		<choice doc:name="Choice" doc:id="fe21f4df-553e-4cb6-9f9b-ce4db3056625" >
+			<when expression="#[isEmpty(vars.vGet)]">
+				<ee:transform doc:name="Update case error response" doc:id="ddb5a8fa-3817-48a2-aaa8-d9c2689bb37c" >
+					<ee:message >
+						<ee:set-payload resource="dwlScripts/togeterrorresponseofupdatedcases.dwl" />
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<db:update doc:name="Updating a Case in DB" doc:id="77cb10db-381a-4875-a700-8a4713a7468a" config-ref="Database_Config">
+			<db:sql><![CDATA[UPDATE freedb_nikitha.DB1
 SET
     Priority = :Priority,
    Status = :Status,
@@ -91,36 +112,40 @@ SET
     Sync_new_record_to_sfdc= :Sync_new_record_to_sfdc,
     Sync_update_record_to_sfdc= :Sync_update_record_to_sfdc,
     External_Id= :External_Id,
-     OwnerId= :OwnerId
+    OwnerId= :OwnerId,
+    UpdatedDate= :UpdatedDate
 WHERE Id = :Id;]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{      "Id": attributes.uriParams.id,
+			<db:input-parameters><![CDATA[#[{      "Id": vars.id,
 	   "Priority": payload.priority,
 	   "Status": payload.status,
-         "Description" :payload.description ,
+         "Description": payload.description ,
          "Subject":  payload.subject,
          "Sync_new_record_to_sfdc": payload.sync_new_record_to_sfdc,
          "Sync_update_record_to_sfdc": payload.sync_update_record_to_sfdc,
          "External_Id": payload.external_id,
-         "OwnerId": payload.owner_Id
+         "OwnerId": payload.owner_Id,
+         "UpdatedDate": now()
       }]]]></db:input-parameters>
 		</db:update>
-		<ee:transform doc:name="Response of update case" doc:id="40159116-c808-42f5-a50f-a9e2ae6ade4c">
+				<ee:transform doc:name="DW set for Response of update case" doc:id="40159116-c808-42f5-a50f-a9e2ae6ade4c">
 			<ee:message>
 				<ee:set-payload resource="dwlScripts/togetresponseoftheupdate.dwl" />
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="update-cases-flow -ended" doc:id="0a0601fd-9646-4d6b-b7e4-47684979f655" message="update-cases-flow -ended"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Update-cases-flow -ended" doc:id="0a0601fd-9646-4d6b-b7e4-47684979f655" message="Update-cases-flow -ended"/>
 	</flow>
 	<flow name="get-all-cases-implementation" doc:id="2c75df94-98ee-4f31-b0c8-462fc51b84f2" >
-		<logger level="INFO" doc:name="get-all-cases-flow -started" doc:id="cccc0579-164a-45a9-aa79-b1635ac4443f" message="get-all-cases-flow -started"/>
+		<logger level="INFO" doc:name="Get-all-cases-flow -started" doc:id="cccc0579-164a-45a9-aa79-b1635ac4443f" message="Get-all-cases-flow -started"/>
 		<db:select doc:name="Retriving All Cases From DB" doc:id="c154183d-f38e-48b7-b095-7d01b77615c3" config-ref="Database_Config">
 			<db:sql ><![CDATA[SELECT * FROM freedb_nikitha.DB1]]></db:sql>
 		</db:select>
-		<ee:transform doc:name="Response of get all" doc:id="dd6085fb-3c27-4358-9da5-60354407e9d4" >
+		<ee:transform doc:name="DW set to Response of get all" doc:id="dd6085fb-3c27-4358-9da5-60354407e9d4" >
 			<ee:message >
 				<ee:set-payload resource="dwlScripts/togetresponseofallcases.dwl" />
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="get-all-cases-flow -ended" doc:id="2ac7f460-a8b6-4671-bb8b-2d1a77a9ed1f" message="get-all-cases-flow -ended"/>
+		<logger level="INFO" doc:name="Get-all-cases-flow -ended" doc:id="2ac7f460-a8b6-4671-bb8b-2d1a77a9ed1f" message="Get-all-cases-flow -ended"/>
 	</flow>
 </mule>

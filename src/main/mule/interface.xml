@@ -41,19 +41,29 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="put:\case\(id):application\json:ic-db-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="0a0d92cc-9f14-4ade-8997-e7af4130a40f" name="update-cases-implementation" />
+	<flow name="put:\case\(id):application\json:ic-db-sapi-config">
+        <logger level="INFO" doc:name="Update interface flow started" doc:id="efdd0241-3fd1-4ed3-9d24-087646d9347e" message="Update interface flow started"/>
+		<flow-ref doc:name="This flow is referining to update cases flow" doc:id="0a0d92cc-9f14-4ade-8997-e7af4130a40f" name="update-cases-implementation" />
+		<logger level="INFO" doc:name="Update interface flow ended" doc:id="6810169f-fdaf-4a3e-bf62-8f82601cc8c2" message="Update interface flow ended"/>
     </flow>
     <flow name="delete:\case\(id):ic-db-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="1f2f8f4d-4bed-4104-8887-e73dd435e9b9" name="deleting-case-implementaion" />
+        <logger level="INFO" doc:name="Delete interface flow started" doc:id="6ac6ee93-7af4-401a-bd43-3b67059b9d30" message="Delete interface flow started"/>
+		<flow-ref doc:name="This flow is referining to deleting case flow" doc:id="1f2f8f4d-4bed-4104-8887-e73dd435e9b9" name="deleting-case-implementaion" />
+		<logger level="INFO" doc:name="Delete interface flow ended" doc:id="4d2a345b-c5d3-4026-af8f-e3698428a1dd" message="Delete interface flow ended"/>
     </flow>
     <flow name="get:\case:ic-db-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="2428b2aa-3f23-45b1-9498-3614470a71e6" name="get-all-cases-implementation" />
+        <logger level="INFO" doc:name="Get all interface flow started" doc:id="e7c0a69c-f014-4c1a-ab80-a38bcfdeb263" message="Get all interface flow started"/>
+		<flow-ref doc:name="This flow is referining to get all cases flow" doc:id="2428b2aa-3f23-45b1-9498-3614470a71e6" name="get-all-cases-implementation" />
+		<logger level="INFO" doc:name="Get all interface flow ended" doc:id="7291e081-3095-46b0-8259-1e22caf6e195" message="Get all interface flow ended"/>
     </flow>
     <flow name="get:\case\(id):ic-db-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="4318ec28-0395-48a4-b0d1-edcaa60ba6fd" name="get-by-id-implementation" />
+        <logger level="INFO" doc:name="Get by id interface flow started" doc:id="df90bc59-b3c0-49d9-a875-058688bfccbe" message="Get by id interface flow started"/>
+		<flow-ref doc:name="This flow is referining to get by id case flow" doc:id="4318ec28-0395-48a4-b0d1-edcaa60ba6fd" name="get-by-id-implementation" />
+		<logger level="INFO" doc:name="Get by id interface flow ended" doc:id="6e1a4ad9-f81a-4975-b70f-aafcd6a92fc3" message="get by id interface flow ended"/>
     </flow>
     <flow name="post:\case:application\json:ic-db-sapi-config">
-        <flow-ref doc:name="Flow Reference" doc:id="1e9092b7-e11d-4a31-a42e-f28802893c1b" name="creating-case-implementation" />
+        <logger level="INFO" doc:name="Creating case interface flow started" doc:id="c5162283-c15d-47a2-96d5-f5d178e7a9af" message="Creating case interface flow started"/>
+		<flow-ref doc:name="This flow is referining to creating case flow" doc:id="1e9092b7-e11d-4a31-a42e-f28802893c1b" name="creating-case-implementation" />
+		<logger level="INFO" doc:name="Creating case interface flow ended" doc:id="5bec2089-4f29-41d4-9ded-f459f5661775" message="creating case interface flow ended"/>
     </flow>
 </mule>
